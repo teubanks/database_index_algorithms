@@ -53,3 +53,13 @@
 - Run `gofmt` on changed Go files, `go test ./...`, and `go vet ./...`.
   For command or demo changes, also run the affected command and inspect output.
 - Update the README when package layout, commands, or public behavior changes.
+
+## Algorithm documentation
+
+- Give each algorithm subcommand a `cmd/<name>/README.md` with a short overview,
+  how its main operations work, a root-level run command, links to its owning
+  code, and further reading (prefer the requested Grokipedia article when available).
+- Link each algorithm README from the root README's algorithm table. Keep the
+  root focused on navigation, comparison, project structure, and development.
+- Verify external article links when possible. Explicitly mark links that could
+  not be verified rather than claiming that an article exists or was reviewed.
