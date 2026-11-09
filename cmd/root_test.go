@@ -1,7 +1,9 @@
-package main
+package cmd_test
 
 import (
 	"bytes"
+
+	"example.com/learn/btrees/cmd"
 	"strings"
 	"testing"
 )
@@ -37,7 +39,7 @@ func TestCommands(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			root := newRootCommand()
+			root := cmd.New()
 			var output bytes.Buffer
 			root.SetOut(&output)
 			root.SetErr(&output)

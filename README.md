@@ -6,10 +6,37 @@ depth, duplicate handling, and successful searches after every insertion.
 The CLI uses Cobra for subcommands. Run `go run . --help` to list commands,
 or `go run . btree --help` for help with the B-tree demonstration.
 
-`main.go` starts the CLI; `root.go` registers subcommands;
-`btree_command.go` runs the existing demo; `btree.go` contains the tree itself.
-Add future demonstrations as separate commands through `root.AddCommand` in
-`newRootCommand`.
+## Project structure
+
+```text
+main.go                         # Thin executable entry point
+cmd/
+  root.go                       # Root command and registration
+  root_test.go                  # CLI dispatch and behavior tests
+  btree/
+    command.go                  # Cobra command factory
+    internal/
+      demo/                     # Stateful B-tree walkthrough
+      tree/                     # B-tree, nodes, algorithms, invariant tests
+  bplus/
+    command.go                  # Cobra command factory
+    internal/
+      demo/                     # Stateful B+ tree walkthrough
+      tree/                     # B+ tree, nodes, algorithms, invariant tests
+```
+
+Each command package exposes `New() *cobra.Command`. Its demo owns the output
+writer and a fresh tree for each run. Nested `internal` packages keep the example's
+implementation private to its command. Tree packages have no Cobra dependency;
+their exported `Tree` types are ready to use at the zero value. Leaves and
+branches own their insertion and split behavior through private methods.
+
+To add an example, create `cmd/<name>/command.go`, place its walkthrough and
+isolated logic in focused nested packages, then register `<name>.New()` in
+`cmd/root.go`. Put tests beside the package they exercise. Follow `AGENTS.md`
+for the project's Go adaptation of SOLID and type/package ownership rules.
+
+Run `go test ./...` and `go vet ./...` from the repository root.
 
 ## Start with Search
 
@@ -66,10 +93,10 @@ search and split algorithms remain easy to read.
 
 Run `go run . bplus` to compare the same insertion sequence with a B+ tree.
 Use `go run . bplus --help` for command help. The implementation is in
-`bplus_tree.go`, and its demonstration is in `bplus_command.go`.
+`cmd/bplus/internal/tree`, and its demonstration is in `cmd/bplus/internal/demo`.
 
 This example stores unique integer keys, with up to 3 keys per node. It has
-separate `bplusLeaf` and `bplusBranch` types behind a `bplusNode` interface:
+separate `leaf` and `branch` types behind a `node` interface:
 
 - Stored keys live in leaves. Branch separators are copies used for navigation.
 - A separator equals the smallest key in its right child's subtree. Equality
@@ -95,7 +122,7 @@ Notice that 10 and 20 remain in leaves as well as appearing in the branch.
 Searching for 10 descends to `[10 12 17]`. Scanning `[6, 20]` returns
 `[6 7 10 12 17 20]` by following three leaves.
 
-The zero-value `BPlusTree` supports `Insert(key)`, `Search(key, trace)`,
+The zero-value B+ `tree.Tree` supports `Insert(key)`, `Search(key, trace)`,
 `Range(low, high, trace)`, and `Print(writer)`. Pass `nil` to suppress tracing.
 Duplicate inserts are ignored; empty or reversed ranges return no keys.
 Search and insertion take O(log n) time; a range scan takes O(log n + k) for

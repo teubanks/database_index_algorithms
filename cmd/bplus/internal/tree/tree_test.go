@@ -1,4 +1,4 @@
-package main
+package tree
 
 import (
 	"bytes"
@@ -22,7 +22,7 @@ func TestBPlusInsertInvariants(t *testing.T) {
 					keys[i], keys[j] = keys[j], keys[i]
 				})
 			}
-			var tree BPlusTree
+			var tree Tree
 			var want []int
 			for _, key := range keys {
 				tree.Insert(key)
@@ -56,19 +56,19 @@ func TestBPlusInsertInvariants(t *testing.T) {
 	}
 }
 
-func validateBPlus(t *testing.T, tree *BPlusTree, want []int) {
+func validateBPlus(t *testing.T, tree *Tree, want []int) {
 	t.Helper()
-	var leaves []*bplusLeaf
+	var leaves []*leaf
 	var stored []int
 	leafDepth := -1
-	var visit func(bplusNode, bool, int) (int, int)
-	visit = func(n bplusNode, root bool, depth int) (int, int) {
+	var visit func(node, bool, int) (int, int)
+	visit = func(n node, root bool, depth int) (int, int) {
 		t.Helper()
 		if n == nil {
 			t.Fatal("nil child")
 		}
-		keys := n.bplusKeys()
-		if len(keys) == 0 || len(keys) > bplusMaxKeys {
+		keys := n.nodeKeys()
+		if len(keys) == 0 || len(keys) > maxKeys {
 			t.Fatalf("invalid occupancy: %v", keys)
 		}
 		for i := 1; i < len(keys); i++ {
@@ -77,8 +77,8 @@ func validateBPlus(t *testing.T, tree *BPlusTree, want []int) {
 			}
 		}
 		switch n := n.(type) {
-		case *bplusLeaf:
-			if !root && len(n.keys) < (bplusMaxKeys+1)/2 {
+		case *leaf:
+			if !root && len(n.keys) < (maxKeys+1)/2 {
 				t.Fatal("underfilled leaf")
 			}
 			if leafDepth == -1 {
@@ -90,7 +90,7 @@ func validateBPlus(t *testing.T, tree *BPlusTree, want []int) {
 			leaves = append(leaves, n)
 			stored = append(stored, n.keys...)
 			return n.keys[0], n.keys[len(n.keys)-1]
-		case *bplusBranch:
+		case *branch:
 			if len(n.children) != len(n.keys)+1 {
 				t.Fatal("wrong child count")
 			}
@@ -114,7 +114,7 @@ func validateBPlus(t *testing.T, tree *BPlusTree, want []int) {
 	}
 	// Compare pointer identity to tree traversal: detects skipped leaves and cycles.
 	for i, l := range leaves {
-		var wantNext *bplusLeaf
+		var wantNext *leaf
 		if i+1 < len(leaves) {
 			wantNext = leaves[i+1]
 		}
@@ -125,7 +125,7 @@ func validateBPlus(t *testing.T, tree *BPlusTree, want []int) {
 }
 
 func TestBPlusEmptyAndExtremeKeys(t *testing.T) {
-	var tree BPlusTree
+	var tree Tree
 	var out bytes.Buffer
 	tree.Print(&out)
 	if out.String() != "(empty)\n" || tree.Search(0, nil) || len(tree.Range(-1, 1, nil)) != 0 {
@@ -147,7 +147,7 @@ func TestBPlusEmptyAndExtremeKeys(t *testing.T) {
 }
 
 func TestBPlusSeparatorSearchAndRangeTrace(t *testing.T) {
-	var tree BPlusTree
+	var tree Tree
 	for _, key := range []int{10, 20, 5, 6, 12, 30, 7, 17} {
 		tree.Insert(key)
 	}
