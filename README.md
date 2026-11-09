@@ -1,4 +1,4 @@
-# Learn B-trees with Go
+# Learn Database Index Algorithms with Go
 
 Small Go implementations and terminal walkthroughs for learning how balanced
 search trees, indexes, and column-oriented access methods work. Tree examples
