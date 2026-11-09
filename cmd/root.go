@@ -2,8 +2,11 @@
 package cmd
 
 import (
+	"example.com/learn/btrees/cmd/art"
 	"example.com/learn/btrees/cmd/bplus"
 	"example.com/learn/btrees/cmd/btree"
+	"example.com/learn/btrees/cmd/columnscan"
+	"example.com/learn/btrees/cmd/zonemap"
 
 	"github.com/spf13/cobra"
 )
@@ -16,6 +19,6 @@ func New() *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 	}
-	root.AddCommand(btree.New(), bplus.New())
+	root.AddCommand(btree.New(), bplus.New(), art.New(), zonemap.New(), columnscan.New())
 	return root
 }

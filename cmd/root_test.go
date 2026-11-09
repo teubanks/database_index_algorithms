@@ -59,3 +59,48 @@ func TestCommands(t *testing.T) {
 		})
 	}
 }
+
+func TestDuckDBLearningCommands(t *testing.T) {
+	examples := []struct {
+		name string
+		want []string
+	}{
+		{"art", []string{"Duplicate car inserted: false", "Node4", "Node16", "Node48", "Node256", "prefix="}},
+		{"zonemap", []string{"ordered values:", "mixed values:", "skipped=2 scanned=1 values examined=4", "False positive:"}},
+		{"columnscan", []string{"selection=[2 3]", "IDs: [3 4 5 6 7]; SUM(amount)=250", "Batches=3; filter values read=10; amount values read=5"}},
+	}
+	for _, example := range examples {
+		t.Run(example.name, func(t *testing.T) {
+			root := cmd.New()
+			var output bytes.Buffer
+			root.SetOut(&output)
+			root.SetErr(&output)
+			root.SetArgs([]string{example.name})
+			if err := root.Execute(); err != nil {
+				t.Fatal(err)
+			}
+			for _, want := range example.want {
+				if !strings.Contains(output.String(), want) {
+					t.Errorf("missing %q in %s", want, output.String())
+				}
+			}
+			for _, args := range [][]string{{example.name, "extra"}, {example.name, "--missing"}} {
+				command := cmd.New()
+				command.SetOut(&output)
+				command.SetErr(&output)
+				command.SetArgs(args)
+				if err := command.Execute(); err == nil {
+					t.Errorf("accepted invalid arguments: %v", args)
+				}
+			}
+			help := cmd.New()
+			output.Reset()
+			help.SetOut(&output)
+			help.SetErr(&output)
+			help.SetArgs([]string{example.name, "--help"})
+			if err := help.Execute(); err != nil || !strings.Contains(output.String(), "btrees "+example.name) {
+				t.Fatalf("incorrect command help: %v %s", err, output.String())
+			}
+		})
+	}
+}

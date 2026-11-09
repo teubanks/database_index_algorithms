@@ -28,11 +28,12 @@
   Nested CLI subcommands should follow the same package-per-command pattern.
 - Put feature-specific logic in focused nested packages under that command's
   `internal` directory. Current examples use `internal/demo` for the walkthrough
-  and `internal/tree` for the data structure and algorithms.
+  and `internal/tree` for tree algorithms; scans use `internal/column` or
+  `internal/scan` for their focused logic.
 - Keep Cobra argument/flag parsing in the command package, demonstration
   sequences in the demo package, and data structure invariants in the tree package.
-- Dependencies point inward: main -> root command -> subcommand -> demo -> tree.
-  Tree packages must not import Cobra or command/demo packages. One command must
+- Dependencies point inward: main -> root command -> subcommand -> demo -> algorithm logic.
+  Algorithm packages must not import Cobra or command/demo packages. One command must
   not import another command's private implementation.
 - Move code shared by actual consumers to their nearest common owning package
   when needed. Do not share internals or create abstractions just for possible reuse.
@@ -48,8 +49,11 @@
   explanatory comments around algorithm decisions and splits.
 - Preserve existing command names, demo sequences, and output during structural
   refactors unless a requested behavior change requires otherwise.
-- The examples are in-memory integer sets. Do not add persistence, concurrency,
-  payloads, or deletion without a task that calls for them.
+- Keep examples small, in memory, and focused on the requested operation. The
+  B-trees use integer sets, ART uses byte-string keys, and scans use small aligned
+  columns. Do not add persistence, concurrency, or deletion without a task that
+  calls for them. Document simplifications and distinguish educational models
+  from actual DuckDB internals and performance.
 - Run `gofmt` on changed Go files, `go test ./...`, and `go vet ./...`.
   For command or demo changes, also run the affected command and inspect output.
 - Update the README when package layout, commands, or public behavior changes.
